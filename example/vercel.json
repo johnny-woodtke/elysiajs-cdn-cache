@@ -1,5 +1,6 @@
 {
-  "runtime": {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
     "api/index.ts": {
       "runtime": "@godsreveal/vercel-bun@0.0.45"
     }
