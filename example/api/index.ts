@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { CDNCache } from "elysiajs-cdn-cache";
 
-const app = new Elysia()
+const app = new Elysia({ prefix: "/api" })
   .resolve(({ headers, set }) => ({
     CDNCache: new CDNCache({
       cacheControlHeaders: ["Cache-Control", "Vercel-CDN-Cache-Control"],
