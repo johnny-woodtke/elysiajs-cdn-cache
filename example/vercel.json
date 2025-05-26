@@ -1,0 +1,13 @@
+{
+  "runtime": {
+    "api/index.ts": {
+      "runtime": "@godsreveal/vercel-bun@0.0.45"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "api/(.*)",
+      "destination": "api/index.ts"
+    }
+  ]
+}

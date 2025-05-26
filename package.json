@@ -1,14 +1,12 @@
 {
   "name": "elysiajs-cdn-cache",
   "description": "CDN caching plugin for Elysia - no more manually setting headers",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "license": "MIT",
   "scripts": {
     "dev": "bun run --watch example/index.ts",
-    "test": "bun test && npm run test:node",
-    "test:node": "npm install --prefix ./test/node/cjs/ && npm install --prefix ./test/node/esm/ && node ./test/node/cjs/index.js && node ./test/node/esm/index.js",
     "build": "bun build.ts",
-    "release": "npm run build && npm run test && npm publish --access public"
+    "release": "bun run build && npm publish"
   },
   "author": {
     "name": "johnny-woodtke",
@@ -19,9 +17,15 @@
     "type": "git",
     "url": "git+https://github.com/johnny-woodtke/elysiajs-cdn-cache.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/cjs/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "exports": {
     "./package.json": "./package.json",
     ".": {
