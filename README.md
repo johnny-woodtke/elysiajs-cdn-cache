@@ -1,2 +1,2 @@
-# elysia-cdn-cache
+# elysiajs-cdn-cache
 CDN caching plugin for Elysia - no more manually setting headers
