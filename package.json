@@ -1,7 +1,7 @@
 {
   "name": "elysiajs-cdn-cache",
   "description": "CDN caching plugin for Elysia - no more manually setting headers",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "scripts": {
     "dev": "bun run --watch example/index.ts",

@@ -35,7 +35,7 @@ export class CDNCache<TCacheControlHeader extends string> {
     set,
   }: {
     cacheControlHeaders: TCacheControlHeader[];
-    headers: Record<string, string | undefined>;
+    headers: Context["headers"];
     set: Context["set"];
   }) {
     this.cacheControlHeaders = cacheControlHeaders.map(
@@ -54,7 +54,7 @@ export class CDNCache<TCacheControlHeader extends string> {
   private getRequestCacheControlHeaders({
     headers,
   }: {
-    headers: Record<string, string | undefined>;
+    headers: Context["headers"];
   }): Record<TCacheControlHeader, string | undefined> {
     return this.cacheControlHeaders.reduce((acc, header) => {
       acc[header] = headers[header];
@@ -85,7 +85,7 @@ export class CDNCache<TCacheControlHeader extends string> {
   private getRequestCacheControlDirectives({
     headers,
   }: {
-    headers: Record<string, string | undefined>;
+    headers: Context["headers"];
   }): Record<TCacheControlHeader, Set<CacheControlDirective> | undefined> {
     const allDirectives = {} as Record<
       TCacheControlHeader,
