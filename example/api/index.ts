@@ -1,39 +1,39 @@
 import { Elysia, t } from "elysia";
-import { CDNCache } from "elysiajs-cdn-cache";
+import { cacheControl, CacheControl } from "elysiajs-cdn-cache";
 
 const app = new Elysia({ prefix: "/api" })
-  .resolve(({ headers, set }) => ({
-    CDNCache: new CDNCache({
-      cacheControlHeaders: ["Cache-Control", "Vercel-CDN-Cache-Control"],
-      headers,
-      set,
-    }),
-  }))
+  .use(cacheControl("Cache-Control", "Vercel-CDN-Cache-Control"))
 
-  .get("/", ({ CDNCache }) => {
-    const message = "Hello World";
-    const timestamp = new Date().toISOString();
+  .get(
+    "/",
+    ({
+      "Cache-Control": cacheControl,
+      "Vercel-CDN-Cache-Control": vercelCacheControl,
+    }) => {
+      const message = "Hello World";
+      const timestamp = new Date().toISOString();
 
-    CDNCache.setPublic({});
-    CDNCache.setSMaxAge({
-      sMaxAge: 120,
-    });
+      console.log("cacheControl", cacheControl.get().toString());
+      console.log("vercelCacheControl", vercelCacheControl.get().toString());
 
-    return { message, timestamp };
-  })
+      cacheControl.set(new CacheControl().setPublic(true).setSMaxage(60));
+      vercelCacheControl.set(new CacheControl().setPublic(true).setSMaxage(60));
+
+      return { message, timestamp };
+    }
+  )
 
   .get(
     "/:id",
-    ({ CDNCache, params: { id } }) => {
+    ({
+      "Cache-Control": cacheControl,
+      "Vercel-CDN-Cache-Control": vercelCacheControl,
+      params: { id },
+    }) => {
       const timestamp = new Date().toISOString();
 
-      CDNCache.setPublic({
-        target: "Cache-Control",
-      });
-      CDNCache.setSMaxAge({
-        target: "Cache-Control",
-        sMaxAge: 60,
-      });
+      cacheControl.set(new CacheControl().setPublic(true).setSMaxage(60));
+      vercelCacheControl.set(new CacheControl().setPublic(true).setSMaxage(60));
 
       return { id, timestamp };
     },
@@ -44,20 +44,21 @@ const app = new Elysia({ prefix: "/api" })
     }
   )
 
-  .get("/all", ({ CDNCache }) => {
-    const message = "Got All";
-    const timestamp = new Date().toISOString();
+  .get(
+    "/all",
+    ({
+      "Cache-Control": cacheControl,
+      "Vercel-CDN-Cache-Control": vercelCacheControl,
+    }) => {
+      const message = "Got All";
+      const timestamp = new Date().toISOString();
 
-    CDNCache.setPublic({
-      target: ["Cache-Control", "Vercel-CDN-Cache-Control"],
-    });
-    CDNCache.setSMaxAge({
-      target: ["Cache-Control", "Vercel-CDN-Cache-Control"],
-      sMaxAge: 120,
-    });
+      cacheControl.set(new CacheControl().setPublic(true).setSMaxage(60));
+      vercelCacheControl.set(new CacheControl().setPublic(true).setSMaxage(60));
 
-    return { message, timestamp };
-  });
+      return { message, timestamp };
+    }
+  );
 
 if (Bun.env.NODE_ENV !== "production") {
   app.listen(3000);
