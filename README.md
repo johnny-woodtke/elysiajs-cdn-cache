@@ -39,7 +39,10 @@ const app = new Elysia()
     // Set cache headers
     cacheControl.set(
       "Cache-Control",
-      new CacheControl().setPublic(true).setMaxAge(3600).setSMaxage(7200)
+      new CacheControl()
+        .set("public", true)
+        .set("max-age", 3600)
+        .set("s-maxage", 7200)
     );
 
     return { message: "Cached response!", timestamp: Date.now() };
@@ -89,27 +92,27 @@ const cache = new CacheControl("public, max-age=3600, s-maxage=7200");
 ```typescript
 const cache = new CacheControl()
   // Time-based directives
-  .setMaxAge(3600) // max-age=3600
-  .setSMaxage(7200) // s-maxage=7200
-  .setStaleWhileRevalidate(60) // stale-while-revalidate=60
-  .setStaleIfError(300) // stale-if-error=300
+  .set("max-age", 3600) // max-age=3600
+  .set("s-maxage", 7200) // s-maxage=7200
+  .set("stale-while-revalidate", 60) // stale-while-revalidate=60
+  .set("stale-if-error", 300) // stale-if-error=300
 
   // Boolean directives
-  .setPublic(true) // public
-  .setPrivate(true) // private
-  .setNoCache(true) // no-cache
-  .setNoStore(true) // no-store
-  .setMustRevalidate(true) // must-revalidate
-  .setProxyRevalidate(true) // proxy-revalidate
-  .setImmutable(true) // immutable
-  .setNoTransform(true) // no-transform
-  .setMustUnderstand(true); // must-understand
+  .set("public", true) // public
+  .set("private", true) // private
+  .set("no-cache", true) // no-cache
+  .set("no-store", true) // no-store
+  .set("must-revalidate", true) // must-revalidate
+  .set("proxy-revalidate", true) // proxy-revalidate
+  .set("immutable", true) // immutable
+  .set("no-transform", true) // no-transform
+  .set("must-understand", true); // must-understand
 ```
 
 #### Serialization
 
 ```typescript
-const cache = new CacheControl().setPublic(true).setMaxAge(3600);
+const cache = new CacheControl().set("public", true).set("max-age", 3600);
 
 console.log(cache.toString()); // "public, max-age=3600"
 ```
@@ -125,13 +128,13 @@ app.get("/api/data", ({ cacheControl }) => {
   // Set response cache headers
   cacheControl.set(
     "Cache-Control",
-    new CacheControl().setPublic(true).setMaxAge(300) // Browser cache: 5 minutes
+    new CacheControl().set("public", true).set("max-age", 300) // Browser cache: 5 minutes
   );
 
   // Set CDN-specific caching
   cacheControl.set(
     "CDN-Cache-Control",
-    new CacheControl().setPublic(true).setSMaxage(3600) // CDN cache: 1 hour
+    new CacheControl().set("public", true).set("s-maxage", 3600) // CDN cache: 1 hour
   );
 
   return { timestamp: Date.now() };
@@ -147,9 +150,9 @@ app.get("/assets/*", ({ cacheControl }) => {
   cacheControl.set(
     "Cache-Control",
     new CacheControl()
-      .setPublic(true)
-      .setMaxAge(31536000) // 1 year
-      .setImmutable(true)
+      .set("public", true)
+      .set("max-age", 31536000) // 1 year
+      .set("immutable", true)
   );
 
   // Serve static file...
@@ -163,14 +166,14 @@ app.get("/api/posts", ({ cacheControl }) => {
   cacheControl.set(
     "Cache-Control",
     new CacheControl()
-      .setPublic(true)
-      .setMaxAge(60) // Browser: 1 minute
-      .setStaleWhileRevalidate(300) // Allow stale for 5 minutes
+      .set("public", true)
+      .set("max-age", 60) // Browser: 1 minute
+      .set("stale-while-revalidate", 300) // Allow stale for 5 minutes
   );
 
   cacheControl.set(
     "Vercel-CDN-Cache-Control",
-    new CacheControl().setPublic(true).setSMaxage(3600) // Vercel CDN: 1 hour
+    new CacheControl().set("public", true).set("s-maxage", 3600) // Vercel CDN: 1 hour
   );
 
   return await getPosts();
@@ -183,7 +186,10 @@ app.get("/api/posts", ({ cacheControl }) => {
 app.get("/user/profile", ({ cacheControl }) => {
   cacheControl.set(
     "Cache-Control",
-    new CacheControl().setPrivate(true).setMaxAge(300).setMustRevalidate(true)
+    new CacheControl()
+      .set("private", true)
+      .set("max-age", 300)
+      .set("must-revalidate", true)
   );
 
   return await getUserProfile();
@@ -196,7 +202,7 @@ app.get("/user/profile", ({ cacheControl }) => {
 app.get("/api/realtime", ({ cacheControl }) => {
   cacheControl.set(
     "Cache-Control",
-    new CacheControl().setNoStore(true).setNoCache(true)
+    new CacheControl().set("no-store", true).set("no-cache", true)
   );
 
   return await getRealtimeData();
@@ -220,19 +226,19 @@ app.get("/api/content", ({ cacheControl }) => {
   // Browser cache: 5 minutes
   cacheControl.set(
     "Cache-Control",
-    new CacheControl().setPublic(true).setMaxAge(300)
+    new CacheControl().set("public", true).set("max-age", 300)
   );
 
   // General CDN: 1 hour
   cacheControl.set(
     "CDN-Cache-Control",
-    new CacheControl().setPublic(true).setSMaxage(3600)
+    new CacheControl().set("public", true).set("s-maxage", 3600)
   );
 
   // Vercel CDN: 24 hours
   cacheControl.set(
     "Vercel-CDN-Cache-Control",
-    new CacheControl().setPublic(true).setSMaxage(86400)
+    new CacheControl().set("public", true).set("s-maxage", 86400)
   );
 });
 ```

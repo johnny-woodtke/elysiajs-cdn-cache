@@ -18,7 +18,10 @@ const app = new Elysia({ prefix: "/api" })
 
     cacheControl.set(
       "Cache-Control",
-      new CacheControl().setPublic(true).setSMaxage(120).setMaxAge(60)
+      new CacheControl()
+        .set("public", true)
+        .set("s-maxage", 120)
+        .set("max-age", 60)
     );
 
     return { message, timestamp };
@@ -36,7 +39,7 @@ const app = new Elysia({ prefix: "/api" })
 
       cacheControl.set(
         "Cache-Control",
-        new CacheControl().setPrivate(true).setMaxAge(60)
+        new CacheControl().set("private", true).set("max-age", 60)
       );
 
       return { id, timestamp };
@@ -56,7 +59,10 @@ const app = new Elysia({ prefix: "/api" })
 
     cacheControl.set(
       "Cache-Control",
-      new CacheControl().setPublic(true).setSMaxage(120).setMaxAge(60)
+      new CacheControl()
+        .set("public", true)
+        .set("s-maxage", 120)
+        .set("max-age", 60)
     );
 
     return { message, timestamp };

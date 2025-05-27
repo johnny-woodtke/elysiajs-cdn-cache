@@ -1,97 +1,43 @@
-type CacheControlDirective =
-  | "max-age"
-  | "s-maxage"
-  | "no-cache"
-  | "no-store"
-  | "no-transform"
-  | "must-revalidate"
-  | "proxy-revalidate"
-  | "must-understand"
-  | "private"
-  | "public"
-  | "immutable"
-  | "stale-while-revalidate"
-  | "stale-if-error";
+const BooleanCacheControlDirectiveMap = {
+  "no-cache": "no-cache",
+  "no-store": "no-store",
+  "must-revalidate": "must-revalidate",
+  "proxy-revalidate": "proxy-revalidate",
+  "must-understand": "must-understand",
+  private: "private",
+  public: "public",
+} as const;
 
-type CacheControlDirectiveMap<TDirective extends CacheControlDirective> = {
-  "max-age": "number";
-  "s-maxage": "number";
-  "no-cache": "boolean";
-  "no-store": "boolean";
-  "must-revalidate": "boolean";
-  "proxy-revalidate": "boolean";
-  public: "boolean";
-  private: "boolean";
-  immutable: "boolean";
-  "stale-while-revalidate": "number";
-  "stale-if-error": "number";
-  "no-transform": "boolean";
-  "must-understand": "boolean";
-}[TDirective];
+type BooleanCacheControlDirective =
+  keyof typeof BooleanCacheControlDirectiveMap;
 
-type CacheControlDirectiveValueMap<TValue extends "boolean" | "number"> = {
-  boolean: boolean;
-  number: number;
-}[TValue];
+const NumberCacheControlDirectiveMap = {
+  "max-age": "max-age",
+  "s-maxage": "s-maxage",
+  "stale-while-revalidate": "stale-while-revalidate",
+  "stale-if-error": "stale-if-error",
+} as const;
 
-const cacheControlDirectiveMap = {
-  "max-age": "number",
-  "s-maxage": "number",
-  "no-cache": "boolean",
-  "no-store": "boolean",
-  "must-revalidate": "boolean",
-  "proxy-revalidate": "boolean",
-  public: "boolean",
-  private: "boolean",
-  immutable: "boolean",
-  "stale-while-revalidate": "number",
-  "stale-if-error": "number",
-  "no-transform": "boolean",
-  "must-understand": "boolean",
-} as const satisfies {
-  [K in CacheControlDirective]: CacheControlDirectiveMap<K>;
-};
+type NumberCacheControlDirective = keyof typeof NumberCacheControlDirectiveMap;
 
-const cacheControlDirectiveEntries = Object.entries(
-  cacheControlDirectiveMap
-) as [CacheControlDirective, CacheControlDirectiveMap<CacheControlDirective>][];
+const CacheControlDirectiveMap = {
+  ...BooleanCacheControlDirectiveMap,
+  ...NumberCacheControlDirectiveMap,
+} as const;
+
+type CacheControlDirective = keyof typeof CacheControlDirectiveMap;
+
+type DirectiveValue<TDirective extends CacheControlDirective> =
+  TDirective extends BooleanCacheControlDirective
+    ? boolean | undefined
+    : TDirective extends NumberCacheControlDirective
+    ? number | undefined
+    : never;
 
 export class CacheControl {
-  "max-age"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"max-age">
-  >;
-  "s-maxage"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"s-maxage">
-  >;
-  "no-cache"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"no-cache">
-  >;
-  "no-store"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"no-store">
-  >;
-  "must-revalidate"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"must-revalidate">
-  >;
-  "proxy-revalidate"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"proxy-revalidate">
-  >;
-  public?: CacheControlDirectiveValueMap<CacheControlDirectiveMap<"public">>;
-  private?: CacheControlDirectiveValueMap<CacheControlDirectiveMap<"private">>;
-  immutable?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"immutable">
-  >;
-  "stale-while-revalidate"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"stale-while-revalidate">
-  >;
-  "stale-if-error"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"stale-if-error">
-  >;
-  "no-transform"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"no-transform">
-  >;
-  "must-understand"?: CacheControlDirectiveValueMap<
-    CacheControlDirectiveMap<"must-understand">
-  >;
+  private directives: Partial<{
+    [TDirective in CacheControlDirective]: DirectiveValue<TDirective>;
+  }> = {};
 
   constructor(value?: string | null) {
     if (typeof value === "string") {
@@ -103,104 +49,58 @@ export class CacheControl {
     const directives = headerValue.split(",").map((part) => part.trim());
 
     for (const directive of directives) {
-      const [key, rawValue] = directive.toLowerCase().split("=") as [
-        CacheControlDirective,
-        string
-      ];
+      const [rawDirective, rawDirectiveValue] = directive
+        .toLowerCase()
+        .split("=") as [string, string | undefined];
 
-      const type = cacheControlDirectiveMap[key];
-
-      if (type === "boolean") {
-        this[key] = true as never;
+      const booleanDirective =
+        BooleanCacheControlDirectiveMap[
+          rawDirective as BooleanCacheControlDirective
+        ];
+      if (booleanDirective) {
+        this.directives[booleanDirective] = true;
         continue;
       }
 
-      if (type === "number" && rawValue !== undefined) {
-        const num = parseInt(rawValue);
-        if (!isNaN(num)) {
-          this[key] = num as never;
+      const numberDirective =
+        NumberCacheControlDirectiveMap[
+          rawDirective as NumberCacheControlDirective
+        ];
+      if (numberDirective && rawDirectiveValue !== undefined) {
+        const directiveValue = parseInt(rawDirectiveValue);
+        if (!Number.isNaN(directiveValue)) {
+          this.directives[numberDirective] = directiveValue;
         }
       }
     }
   }
 
-  setMaxAge(value?: number): this {
-    this["max-age"] = value;
-    return this;
+  get<TDirective extends CacheControlDirective>(
+    directive: TDirective
+  ): DirectiveValue<TDirective> {
+    return this.directives[directive] as DirectiveValue<TDirective>;
   }
 
-  setSMaxage(value?: number): this {
-    this["s-maxage"] = value;
-    return this;
-  }
-
-  setNoCache(value?: boolean): this {
-    this["no-cache"] = value;
-    return this;
-  }
-
-  setNoStore(value?: boolean): this {
-    this["no-store"] = value;
-    return this;
-  }
-
-  setNoTransform(value?: boolean): this {
-    this["no-transform"] = value;
-    return this;
-  }
-
-  setMustUnderstand(value?: boolean): this {
-    this["must-understand"] = value;
-    return this;
-  }
-
-  setMustRevalidate(value?: boolean): this {
-    this["must-revalidate"] = value;
-    return this;
-  }
-
-  setProxyRevalidate(value?: boolean): this {
-    this["proxy-revalidate"] = value;
-    return this;
-  }
-
-  setPublic(value?: boolean): this {
-    this.public = value;
-    return this;
-  }
-
-  setPrivate(value?: boolean): this {
-    this.private = value;
-    return this;
-  }
-
-  setImmutable(value?: boolean): this {
-    this.immutable = value;
-    return this;
-  }
-
-  setStaleWhileRevalidate(value?: number): this {
-    this["stale-while-revalidate"] = value;
-    return this;
-  }
-
-  setStaleIfError(value?: number): this {
-    this["stale-if-error"] = value;
+  set<TDirective extends CacheControlDirective>(
+    directive: TDirective,
+    value?: DirectiveValue<TDirective>
+  ): this {
+    this.directives[directive] = value as never;
     return this;
   }
 
   toString(): string {
     const parts: string[] = [];
 
-    for (const [directive, type] of cacheControlDirectiveEntries) {
-      const value = this[directive];
+    for (const directive in this.directives) {
+      const value = this.directives[directive as CacheControlDirective];
 
-      if (type === "boolean" && value === true) {
+      if (value === true) {
         parts.push(directive);
         continue;
       }
 
-      if (type === "number" && typeof value === "number") {
+      if (value !== undefined) {
         parts.push(`${directive}=${value}`);
         continue;
       }
