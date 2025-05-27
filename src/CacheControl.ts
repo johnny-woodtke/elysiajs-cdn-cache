@@ -92,17 +92,22 @@ export class CacheControl {
   toString(): string {
     const parts: string[] = [];
 
-    for (const directive in this.directives) {
-      const value = this.directives[directive as CacheControlDirective];
+    for (const directive of Object.keys(
+      this.directives
+    ) as CacheControlDirective[]) {
+      const value = this.directives[directive];
+
+      if (value === false || value === undefined) {
+        continue;
+      }
 
       if (value === true) {
         parts.push(directive);
         continue;
       }
 
-      if (value !== undefined) {
+      if (!Number.isNaN(value)) {
         parts.push(`${directive}=${value}`);
-        continue;
       }
     }
 
