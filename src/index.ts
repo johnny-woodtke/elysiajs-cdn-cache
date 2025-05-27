@@ -2,31 +2,28 @@ import { Elysia } from "elysia";
 
 import { CacheControl } from "./CacheControl";
 
-type CacheControlMethods = {
-  get: () => CacheControl;
-  set: (value: CacheControl) => void;
-};
-
 export function cacheControl<THeader extends string = "Cache-Control">(
-  ...cacheControlHeaders: THeader[]
+  ...headers: THeader[]
 ) {
-  return new Elysia().derive({ as: "global" }, ({ set, headers }) =>
-    (cacheControlHeaders.length
-      ? cacheControlHeaders
-      : ["Cache-Control" as THeader]
-    ).reduce<Record<THeader, CacheControlMethods>>((acc, header) => {
-      const key = header.toLowerCase();
-      acc[header] = {
-        get() {
-          return new CacheControl(headers[key]);
-        },
-        set(value) {
-          set.headers[key] = value.toString();
-        },
-      };
-      return acc;
-    }, {} as Record<THeader, CacheControlMethods>)
-  );
+  return new Elysia().resolve({ as: "global" }, ({ set, headers }) => ({
+    cacheControl: {
+      /**
+       * Gets the request's cache control header value converted
+       * to a {@link CacheControl} instance.
+       */
+      get(header: THeader): CacheControl {
+        return new CacheControl(headers[header.toLowerCase()]);
+      },
+
+      /**
+       * Sets the response's cache control header value to the
+       * string representation of the {@link CacheControl} instance.
+       */
+      set(header: THeader, value: CacheControl): void {
+        set.headers[header.toLowerCase()] = value.toString();
+      },
+    },
+  }));
 }
 
 export { CacheControl };
